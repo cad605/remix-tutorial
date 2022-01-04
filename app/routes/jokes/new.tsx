@@ -1,47 +1,51 @@
 import type {ActionFunction} from 'remix'
-import {redirect, useActionData} from 'remix'
+import {useActionData, redirect, json} from 'remix'
 import {db} from '~/utils/db.server'
-
-function validateJokeName(name: string) {
-  if (name.length < 3) {
-    return 'Joke name must be at least 3 characters long'
-  }
-}
 
 function validateJokeContent(content: string) {
   if (content.length < 10) {
-    return 'Joke content must be at least 10 characters long'
+    return `That joke is too short`
+  }
+}
+
+function validateJokeName(name: string) {
+  if (name.length < 2) {
+    return `That joke's name is too short`
   }
 }
 
 type ActionData = {
   formError?: string
-  fields?: {name?: string; content?: string}
-  fieldErrors?: {name?: string; content?: string}
+  fieldErrors?: {
+    name: string | undefined
+    content: string | undefined
+  }
+  fields?: {
+    name: string
+    content: string
+  }
 }
 
-export let action: ActionFunction = async ({request}) => {
+const badRequest = (data: ActionData) => json(data, {status: 400})
+
+export const action: ActionFunction = async ({request}) => {
   const form = await request.formData()
   const name = form.get('name')
   const content = form.get('content')
-  // we do this type check to be extra sure and to make TypeScript happy
-  // we'll explore validation next!
   if (typeof name !== 'string' || typeof content !== 'string') {
-    return {
-      formErrors: `Form not submitted correctly.`,
-    }
+    return badRequest({
+      formError: `Form not submitted correctly.`,
+    })
   }
 
   const fieldErrors = {
     name: validateJokeName(name),
     content: validateJokeContent(content),
   }
-
-  if (Object.values(fieldErrors).some(Boolean)) {
-    return {fieldErrors, fields: {name, content}}
-  }
-
   const fields = {name, content}
+  if (Object.values(fieldErrors).some(Boolean)) {
+    return badRequest({fieldErrors, fields})
+  }
 
   const joke = await db.joke.create({data: fields})
   return redirect(`/jokes/${joke.id}`)
@@ -49,6 +53,7 @@ export let action: ActionFunction = async ({request}) => {
 
 export default function NewJokeRoute() {
   const actionData = useActionData<ActionData>()
+
   return (
     <div>
       <p>Add your own hilarious joke</p>
