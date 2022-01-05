@@ -1,4 +1,4 @@
-import {LinksFunction, LoaderFunction, useLoaderData} from 'remix'
+import {Form, LinksFunction, LoaderFunction, useLoaderData} from 'remix'
 import {Outlet, Link} from 'remix'
 import {db} from '~/utils/db.server'
 import stylesUrl from '~/styles/jokes.css'
@@ -33,7 +33,7 @@ export const loader: LoaderFunction = async ({request}) => {
 }
 
 export default function JokesRoute() {
-  const data = useLoaderData<LoaderData>()
+  const {jokeListItems, user} = useLoaderData<LoaderData>()
   return (
     <div className="jokes-layout">
       <header className="jokes-header">
@@ -44,14 +44,14 @@ export default function JokesRoute() {
               <span className="logo-medium">J🤪KES</span>
             </Link>
           </h1>
-          {data.user ? (
+          {user ? (
             <div className="user-info">
-              <span>{`Hi ${data.user.username}`}</span>
-              <form action="/logout" method="post">
+              <span>{`Hi ${user.username}`}</span>
+              <Form action="/logout" method="post">
                 <button type="submit" className="button">
                   Logout
                 </button>
-              </form>
+              </Form>
             </div>
           ) : (
             <Link to="/login">Login</Link>
@@ -64,9 +64,11 @@ export default function JokesRoute() {
             <Link to=".">Get a random joke</Link>
             <p>Here are a few more jokes to check out:</p>
             <ul>
-              {data.jokeListItems.map(joke => (
+              {jokeListItems.map(joke => (
                 <li key={joke.id}>
-                  <Link to={joke.id}>{joke.name}</Link>
+                  <Link prefetch="intent" to={joke.id}>
+                    {joke.name}
+                  </Link>
                 </li>
               ))}
             </ul>

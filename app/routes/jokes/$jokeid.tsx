@@ -1,4 +1,4 @@
-import type {LoaderFunction, ActionFunction, MetaFunction} from 'remix'
+import {LoaderFunction, ActionFunction, MetaFunction, Form} from 'remix'
 import {Link, useLoaderData, useCatch, redirect, useParams} from 'remix'
 import type {Joke} from '@prisma/client'
 import {db} from '~/utils/db.server'
@@ -60,12 +60,12 @@ export default function JokeRoute() {
       <p>Here's your hilarious joke:</p>
       <p>{data.joke.content}</p>
       <Link to=".">{data.joke.name} Permalink</Link>
-      <form method="post">
+      <Form method="post">
         <input type="hidden" name="_method" value="delete" />
         <button type="submit" className="button">
           Delete
         </button>
-      </form>
+      </Form>
     </div>
   )
 }
