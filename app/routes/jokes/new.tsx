@@ -1,7 +1,15 @@
-import type {ActionFunction} from 'remix'
-import {useActionData, redirect, json} from 'remix'
+import type {ActionFunction, LoaderFunction} from 'remix'
+import {useActionData, redirect, json, useCatch, Link} from 'remix'
 import {db} from '~/utils/db.server'
-import {requireUserId} from '~/utils/session.server'
+import {requireUserId, getUserId} from '~/utils/session.server'
+
+export const loader: LoaderFunction = async ({request}) => {
+  const userId = await getUserId(request)
+  if (!userId) {
+    throw new Response('Yom login plx', {status: 401})
+  }
+  return {}
+}
 
 function validateJokeContent(content: string) {
   if (content.length < 10) {
@@ -109,6 +117,26 @@ export default function NewJokeRoute() {
           </button>
         </div>
       </form>
+    </div>
+  )
+}
+
+export function CatchBoundary() {
+  const caught = useCatch()
+  if (caught.status === 401) {
+    return (
+      <div className="error-container">
+        <p>You must login to create a joke!</p>
+        <Link to="/login">Login</Link>
+      </div>
+    )
+  }
+}
+
+export function ErrorBoundary() {
+  return (
+    <div className="error-container">
+      Something unexpected went wrong. Sorry about that.
     </div>
   )
 }
