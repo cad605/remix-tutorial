@@ -54,8 +54,8 @@ function Document({
         <Links />
       </head>
       <body>
-        {children}
         <Scripts />
+        {children}
         {process.env.NODE_ENV === 'development' ? <LiveReload /> : null}
       </body>
     </html>
